@@ -72,14 +72,16 @@ with st.sidebar.form("Add Member"):
         else:
             st.error("Invalid username or password",icon=":material/error:")         
 
-col1,col2=st.columns(2)
+col1,col2,col3=st.columns(3)
 
 col1.subheader("Log Bazar",text_alignment="center")
 col2.subheader("Log Meal",text_alignment="center")
 col1.dataframe(df)
 col2.dataframe(meal)
-st.markdown("Members",text_alignment="left")
+
 index=0
-while 0<=index<len(members):
-    st.write(index+1,members['Member'][index])
-    index+=1
+with col3:
+    st.markdown("### Members")
+    while 0<=index<len(members):
+        st.write(index+1,members['Member'][index])
+        index+=1
