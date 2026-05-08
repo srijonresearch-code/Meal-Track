@@ -31,7 +31,7 @@ except FileNotFoundError:
 st.sidebar.subheader("Add Bazar",text_alignment="center")
 with st.sidebar.form("Add Expenses"):
     name=st.selectbox("Select member",members["Member"])
-    amount=st.number_input("Enter amount")
+    amount=st.number_input("Enter amount (taka)")
     date=st.date_input("Enter date")
     if st.form_submit_button("Confirm",icon=(":material/check:"),type="primary"):
         bazar={"Name":name,"Amount":amount,"Date":date}
@@ -72,16 +72,18 @@ with st.sidebar.form("Add Member"):
         else:
             st.error("Invalid username or password",icon=":material/error:")         
 
-col1,col2,col3=st.columns(3)
+col1,col2=st.columns(2)
 
 col1.subheader("Log Bazar",text_alignment="center")
 col2.subheader("Log Meal",text_alignment="center")
 col1.dataframe(df)
-col2.dataframe(meal)
+col2.dataframe(meal,height="stretch")
 
-index=0
-with col3:
-    st.markdown("### Members")
-    while 0<=index<len(members):
-        st.write(index+1,members['Member'][index])
-        index+=1
+col4,col5=st.columns([1,10])
+
+
+col4.subheader("Members",text_alignment="center")
+col4.dataframe(members,width="content")
+col5.subheader("Monthly Summery",text_alignment="center")
+col5.metric("Total Bazar",df["Amount"].sum())
+
