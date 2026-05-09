@@ -79,11 +79,23 @@ col2.subheader("Log Meal",text_alignment="center")
 col1.dataframe(df)
 col2.dataframe(meal,height="stretch")
 
-col4,col5=st.columns([1,10])
-
+col4,col5=st.columns([1,8])
+col6,col7,col8,col9,col10,col11,col12,col13=st.columns(8)
 
 col4.subheader("Members",text_alignment="center")
-col4.dataframe(members,width="content")
 col5.subheader("Monthly Summery",text_alignment="center")
-col5.metric("Total Bazar",df["Amount"].sum())
+
+col6.dataframe(members,width="content")
+col7.metric("Total Bazar",df["Amount"].sum(),"Taka")
+with col8:
+    specific_bazar=st.selectbox("Select Member(Bazar)",members["Member"])
+    st.metric("Specific Bazar",df[df["Name"]==specific_bazar]["Amount"].sum())
+col9.metric("Total Meal",meal["Meals"].sum())
+with col10:
+    specific_meal=st.selectbox("Select Member(Meal)",members["Member"])
+    st.metric("Specific Meal",meal[meal["Name"]==specific_meal]["Meals"].sum())
+
+col11.metric("Meal Rate",(df["Amount"].sum()/meal["Meals"].sum()),"Taka")
+
+
 
