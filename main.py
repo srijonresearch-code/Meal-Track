@@ -89,13 +89,31 @@ col6.dataframe(members,width="content")
 col7.metric("Total Bazar",df["Amount"].sum(),"Taka")
 with col8:
     specific_bazar=st.selectbox("Select Member(Bazar)",members["Member"])
-    st.metric("Specific Bazar",df[df["Name"]==specific_bazar]["Amount"].sum())
+    st.metric("Specific Bazar",df[df["Name"]==specific_bazar]["Amount"].sum(),"taka")
 col9.metric("Total Meal",meal["Meals"].sum())
 with col10:
     specific_meal=st.selectbox("Select Member(Meal)",members["Member"])
     st.metric("Specific Meal",meal[meal["Name"]==specific_meal]["Meals"].sum())
 
-col11.metric("Meal Rate",(df["Amount"].sum()/meal["Meals"].sum()),"Taka")
+with col11:
+    try:
+        meal_rate=(df["Amount"].sum()/meal["Meals"].sum())
+    except ZeroDivisionError:
+        meal_rate=0
+    st.metric("Meal Rate",meal_rate,"Taka")    
 
+with col12:
+    specific_due=st.selectbox("Select Member(Due Amount)",members["Member"])
+    due=df[df["Name"]==specific_due]["Amount"].sum()-(meal_rate*(meal[meal["Name"]==specific_due]["Meals"].sum()))
+    if due>=0:
+        st.metric("Due Amount",due,"taka")
+    else:
+        st.metric("Due Amount",0,"taka")
 
-
+with col13:
+    specific_pay=st.selectbox("Select Member(Pay Amount)",members["Member"])
+    pay=(meal_rate*(meal[meal["Name"]==specific_pay]["Meals"].sum()))-df[df["Name"]==specific_pay]["Amount"].sum()
+    if pay>=0:
+        st.metric("Pay Amount",pay,"taka")
+    else:
+        st.metric("Pay Amount",0,"taka")
