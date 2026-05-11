@@ -1,8 +1,25 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 import streamlit as st
 
 st.set_page_config(layout="wide",page_title="Meal Track",page_icon="🍱")
+
+st.markdown("""
+<style>
+.title-box {
+    background-color: #1f3b5c;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;        
+}
+
+.title-text {
+    color: white;
+    font-size: 36px;
+    font-weight: bold;
+}
+</style>
+""", unsafe_allow_html=True)
+st.markdown("""<div class="title-box"><div class="title-text">Meal Track</div></div>""",unsafe_allow_html=True)
 
 sidebar_col1,sidebar_col2=st.sidebar.columns(2)
 year=sidebar_col1.slider("Year",min_value=2026,max_value=2030,value=2026)
@@ -33,7 +50,7 @@ with st.sidebar.form("Add Expenses"):
     name=st.selectbox("Select member",members["Member"])
     amount=st.number_input("Enter amount (taka)")
     date=st.date_input("Enter date")
-    if st.form_submit_button("Confirm",icon=(":material/check:"),type="primary"):
+    if st.form_submit_button("Confirm",icon=(":material/check:")):
         bazar={"Name":name,"Amount":amount,"Date":date}
         df=pd.concat([df,pd.DataFrame([bazar])],ignore_index=True)
         df.to_csv(check_csv,index=False)
@@ -44,7 +61,7 @@ with st.sidebar.form("Add Daily Meal"):
     name=st.selectbox("Select member",members["Member"])
     meal_count=st.slider("Enter meal",max_value=3,min_value=0)
     date=st.date_input("Enter date")
-    if st.form_submit_button("Confirm",icon=(":material/check:"),type="primary"):
+    if st.form_submit_button("Confirm",icon=(":material/check:")):
         meals_list={"Name":name,"Meals":meal_count,"Date":date}
         meal=pd.concat([meal,pd.DataFrame([meals_list])],ignore_index=True)
         meal.to_csv(check_csv_meal,index=False)
@@ -55,7 +72,7 @@ with st.sidebar.form("Add Member"):
     user_name=st.text_input("Enter Username")
     password=st.text_input("Enter password",type="password")
     member=st.text_input("Add Member",placeholder="Enter Name")
-    if st.form_submit_button("Add",icon=(":material/add:"),type="primary"):
+    if st.form_submit_button("Add",icon=(":material/add:")):
         if user_name=="admin" and password=="admin123":
                 if member!="":
                     index=0
@@ -76,8 +93,30 @@ col1,col2=st.columns(2)
 
 col1.subheader("Log Bazar",text_alignment="center")
 col2.subheader("Log Meal",text_alignment="center")
+
 col1.dataframe(df)
-col2.dataframe(meal,height="stretch")
+col2.dataframe(meal)
+
+delete_bazar=col1.number_input("Enter Index to Delete",min_value=0)
+
+with col1:
+    if st.button(" Delete",type="primary",icon=":material/delete:"):
+        if 0<=delete_bazar<len(df.index):
+            df=df.drop(delete_bazar)
+            df.to_csv(check_csv,index=False)
+            st.rerun()
+        else:
+            st.error("Invalid index",icon=":material/error:")
+
+delete_meal=col2.number_input("Enter index to delete",min_value=0)
+with col2:
+    if st.button("Delete ",type="primary",icon=":material/delete:"):
+        if 0<=delete_meal<len(meal.index):
+            meal=meal.drop(delete_meal)
+            meal.to_csv(check_csv_meal,index=False)
+            st.rerun()
+        else:
+            st.error("Invalid index",icon=":material/error:")
 
 col4,col5=st.columns([1,8])
 col6,col7,col8,col9,col10,col11,col12,col13=st.columns(8)
@@ -85,7 +124,13 @@ col6,col7,col8,col9,col10,col11,col12,col13=st.columns(8)
 col4.subheader("Members",text_alignment="center")
 col5.subheader("Monthly Summery",text_alignment="center")
 
-col6.dataframe(members,width="content")
+with col6:
+    col6.dataframe(members,width="content")
+    delete_member=st.selectbox("Select member to delete",members["Member"])
+    if st.button("Delete",type="primary",icon=":material/delete:"):
+        members=members[members["Member"]!=delete_member]
+        members.to_csv("members.csv",index=False)
+        st.rerun()
 col7.metric("Total Bazar",df["Amount"].sum(),"Taka")
 with col8:
     specific_bazar=st.selectbox("Select Member(Bazar)",members["Member"])
@@ -117,3 +162,4 @@ with col13:
         st.metric("Pay Amount",pay,"taka")
     else:
         st.metric("Pay Amount",0,"taka")
+
