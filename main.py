@@ -205,6 +205,3 @@ with col13:
         st.metric("Refund Due",round(due,1),"Taka")
     else:
         st.metric("Refund Due",0.0,"Taka")
-    
-
-
