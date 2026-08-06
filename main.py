@@ -21,16 +21,18 @@ st.markdown("""
 """, unsafe_allow_html=True)
 st.markdown("""<div class="title-box"><div class="title-text">Meal Track</div></div>""",unsafe_allow_html=True)
 
+st.sidebar.subheader("Select Date",text_alignment="center")
 sidebar_col1,sidebar_col2=st.sidebar.columns(2)
 year=sidebar_col1.slider("Year",min_value=2026,max_value=2030,value=2026)
 month=sidebar_col2.selectbox("Month",["January", "February", "March", "April", "May", "June",
                                 "July", "August", "September", "October", "November", "December"])
 check_csv="bazar"+month+str(year)+".csv"
 check_csv_meal="meal"+month+str(year)+".csv"
+check_csv_deposit="deposit"+month+str(year)+".csv"
 try:
     df=pd.read_csv(check_csv)
 except FileNotFoundError:
-    df=pd.DataFrame(columns=["Name","Amount","Date"])
+    df=pd.DataFrame(columns=["Bazar","Amount","Date"])
     df.to_csv(check_csv,index=False)
 
 try:
@@ -45,13 +47,30 @@ except FileNotFoundError:
     meal=pd.DataFrame(columns=["Name","Meals","Date"])
     meal.to_csv(check_csv_meal,index=False)
 
-st.sidebar.subheader("Add Bazar",text_alignment="center")
-with st.sidebar.form("Add Expenses"):
+try:
+    deposit=pd.read_csv(check_csv_deposit)
+except FileNotFoundError:
+    deposit=pd.DataFrame(columns=["Name","Amount","Date"])
+    deposit.to_csv(check_csv_deposit,index=False)
+
+st.sidebar.subheader("Make Deposit",text_alignment="center")
+with st.sidebar.form("Make Deposit"):
     name=st.selectbox("Select member",members["Member"])
     amount=st.number_input("Enter amount (taka)")
     date=st.date_input("Enter date")
     if st.form_submit_button("Confirm",icon=(":material/check:")):
-        bazar={"Name":name,"Amount":amount,"Date":date}
+        deposit_list={"Name":name,"Amount":amount,"Date":date}
+        deposit=pd.concat([deposit,pd.DataFrame([deposit_list])],ignore_index=True)
+        deposit.to_csv(check_csv_deposit,index=False)
+        st.success("Deposit added successfully",icon=(":material/check:"))
+
+st.sidebar.subheader("Add Bazar",text_alignment="center")
+with st.sidebar.form("Add Expenses"):
+    bazar_details=st.text_input("Enter details")
+    amount=st.number_input("Enter amount (taka)")
+    date=st.date_input("Enter date")
+    if st.form_submit_button("Confirm",icon=(":material/check:")):
+        bazar={"Bazar":bazar_details,"Amount":amount,"Date":date}
         df=pd.concat([df,pd.DataFrame([bazar])],ignore_index=True)
         df.to_csv(check_csv,index=False)
         st.success("Expense added successfully",icon=(":material/check:"))
@@ -66,6 +85,15 @@ with st.sidebar.form("Add Daily Meal"):
         meal=pd.concat([meal,pd.DataFrame([meals_list])],ignore_index=True)
         meal.to_csv(check_csv_meal,index=False)
         st.success("Meal added successfully",icon=(":material/check:"))
+
+st.sidebar.subheader("Members",text_alignment="center")
+with st.sidebar:
+    st.dataframe(members,hide_index=True)
+    delete_member=st.selectbox("Select member to delete",members["Member"])
+    if st.button("Delete",type="primary",icon=":material/delete:"):
+        members=members[members["Member"]!=delete_member]
+        members.to_csv("members.csv",index=False)
+        st.rerun()
 
 st.sidebar.subheader("Add New Member",text_alignment="center")
 with st.sidebar.form("Add Member"):
@@ -89,16 +117,20 @@ with st.sidebar.form("Add Member"):
         else:
             st.error("Invalid username or password",icon=":material/error:")         
 
-col1,col2=st.columns(2)
+if members.empty:
+    st.warning("No members added yet")
+
+col1,col2,col3=st.columns(3)
 
 col1.subheader("Log Bazar",text_alignment="center")
 col2.subheader("Log Meal",text_alignment="center")
+col3.subheader("Log Deposit",text_alignment="center")
 
 col1.dataframe(df)
 col2.dataframe(meal)
+col3.dataframe(deposit)
 
-delete_bazar=col1.number_input("Enter Index to Delete",min_value=0)
-
+delete_bazar=col1.number_input("Enter Index to Delete ",min_value=0)
 with col1:
     if st.button(" Delete",type="primary",icon=":material/delete:"):
         if 0<=delete_bazar<len(df.index):
@@ -108,7 +140,7 @@ with col1:
         else:
             st.error("Invalid index",icon=":material/error:")
 
-delete_meal=col2.number_input("Enter index to delete",min_value=0)
+delete_meal=col2.number_input("Enter Index to Delete  ",min_value=0)
 with col2:
     if st.button("Delete ",type="primary",icon=":material/delete:"):
         if 0<=delete_meal<len(meal.index):
@@ -118,48 +150,61 @@ with col2:
         else:
             st.error("Invalid index",icon=":material/error:")
 
-col4,col5=st.columns([1,8])
-col6,col7,col8,col9,col10,col11,col12,col13=st.columns(8)
+delete_deposit=col3.number_input("Enter Index to Delete",min_value=0)
+with col3:
+    if st.button(" Delete ",type="primary",icon=":material/delete:"):
+        if 0<=delete_deposit<len(deposit.index):
+            deposit=deposit.drop(delete_deposit)
+            deposit.to_csv(check_csv_deposit,index=False)
+            st.rerun()
+        else:
+            st.error("Invalid index",icon=":material/error:")
 
-col4.subheader("Members",text_alignment="center")
-col5.subheader("Monthly Summery",text_alignment="center")
+st.subheader("Monthly Summery",text_alignment="center")
 
-with col6:
-    col6.dataframe(members,width="content")
-    delete_member=st.selectbox("Select member to delete",members["Member"])
-    if st.button("Delete",type="primary",icon=":material/delete:"):
-        members=members[members["Member"]!=delete_member]
-        members.to_csv("members.csv",index=False)
-        st.rerun()
-col7.metric("Total Bazar",df["Amount"].sum(),"Taka")
+col4,col5,col6,col7,col8=st.columns(5)  
+
+col4.metric("Total Expense",round(df["Amount"].sum(),1),"Taka")
+
+col5.metric("Total Meal",meal["Meals"].sum(),"Plates")
+
+col6.metric("Total Deposit",round(deposit["Amount"].sum(),1),"Taka")
+
+col7.metric("Remaining Balance",round((deposit["Amount"].sum()-df["Amount"].sum()),1),"Taka")
+
+selected_member=st.selectbox("Select Member",members["Member"],width=250)
+
+col9,col10,col11,col12,col13=st.columns(5)
+
 with col8:
-    specific_bazar=st.selectbox("Select Member(Bazar)",members["Member"])
-    st.metric("Specific Bazar",df[df["Name"]==specific_bazar]["Amount"].sum(),"taka")
-col9.metric("Total Meal",meal["Meals"].sum())
-with col10:
-    specific_meal=st.selectbox("Select Member(Meal)",members["Member"])
-    st.metric("Specific Meal",meal[meal["Name"]==specific_meal]["Meals"].sum())
-
-with col11:
     try:
-        meal_rate=(df["Amount"].sum()/meal["Meals"].sum())
+        meal_rate=(df["Amount"].sum())/(meal["Meals"].sum())
     except ZeroDivisionError:
         meal_rate=0
-    st.metric("Meal Rate",meal_rate,"Taka")    
+    st.metric("Meal Rate",round(meal_rate,1),"Taka")    
+
+with col9:
+    st.metric("Individual Expense",round(((meal_rate)*(meal[meal["Name"]==selected_member]["Meals"].sum())),1),"Taka")
+
+with col10:
+    st.metric("Individual Meal",meal[meal["Name"]==selected_member]["Meals"].sum(),"Plates")
+
+with col11:
+    st.metric("Individual Deposit",round((deposit[deposit["Name"]==selected_member]["Amount"].sum()),1),"Taka")    
 
 with col12:
-    specific_due=st.selectbox("Select Member(Due Amount)",members["Member"])
-    due=df[df["Name"]==specific_due]["Amount"].sum()-(meal_rate*(meal[meal["Name"]==specific_due]["Meals"].sum()))
-    if due>=0:
-        st.metric("Due Amount",due,"taka")
+    pay=(meal_rate*(meal[meal["Name"]==selected_member]["Meals"].sum()))-deposit[deposit["Name"]==selected_member]["Amount"].sum()
+    if pay>0:
+        st.metric("Pay Amount",round(pay,1),"Taka")
     else:
-        st.metric("Due Amount",0,"taka")
-
+        st.metric("Pay Amount",0.0,"Taka")
+    
 with col13:
-    specific_pay=st.selectbox("Select Member(Pay Amount)",members["Member"])
-    pay=(meal_rate*(meal[meal["Name"]==specific_pay]["Meals"].sum()))-df[df["Name"]==specific_pay]["Amount"].sum()
-    if pay>=0:
-        st.metric("Pay Amount",pay,"taka")
+    due=deposit[deposit["Name"]==selected_member]["Amount"].sum()-(meal_rate*(meal[meal["Name"]==selected_member]["Meals"].sum()))
+    if due>0:
+        st.metric("Refund Due",round(due,1),"Taka")
     else:
-        st.metric("Pay Amount",0,"taka")
+        st.metric("Refund Due",0.0,"Taka")
+    
+
 
