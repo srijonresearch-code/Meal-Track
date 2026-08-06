@@ -184,13 +184,13 @@ with col8:
     st.metric("Meal Rate",round(meal_rate,1),"Taka")    
 
 with col9:
-    st.metric("Individual Expense",round(((meal_rate)*(meal[meal["Name"]==selected_member]["Meals"].sum())),1),"Taka")
+    st.metric("Expense",round(((meal_rate)*(meal[meal["Name"]==selected_member]["Meals"].sum())),1),"Taka")
 
 with col10:
-    st.metric("Individual Meal",meal[meal["Name"]==selected_member]["Meals"].sum(),"Plates")
+    st.metric("Meal",meal[meal["Name"]==selected_member]["Meals"].sum(),"Plates")
 
 with col11:
-    st.metric("Individual Deposit",round((deposit[deposit["Name"]==selected_member]["Amount"].sum()),1),"Taka")    
+    st.metric("Deposit",round((deposit[deposit["Name"]==selected_member]["Amount"].sum()),1),"Taka")    
 
 with col12:
     pay=(meal_rate*(meal[meal["Name"]==selected_member]["Meals"].sum()))-deposit[deposit["Name"]==selected_member]["Amount"].sum()
