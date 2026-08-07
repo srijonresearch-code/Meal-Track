@@ -172,7 +172,7 @@ col6.metric("Total Deposit",round(deposit["Amount"].sum(),1),"Taka")
 
 col7.metric("Remaining Balance",round((deposit["Amount"].sum()-df["Amount"].sum()),1),"Taka")
 
-selected_member=st.selectbox("Select Member",members["Member"],width=250)
+selected_member=st.selectbox("Select Member",members["Member"],width=150)
 
 col9,col10,col11,col12,col13=st.columns(5)
 
